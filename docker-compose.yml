@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  auth.db:
+    image: postgres:alpine3.18
+    volumes:
+      - ./Api.Auth/database/auth_db:/var/lib/postgresql/data
+    container_name: auth.db
+    environment:
+      - POSTGRES_USER=${DEV_PG_DB_USER}
+      - POSTGRES_PASSWORD=${DEV_PG_DB_PASS}
+      - POSTGRES_DB=${DEV_PG_DATABASE}
+    ports:
+      - '${DEV_PG_DB_PORT}:5432'
+    expose:
+      - ${DEV_PG_DB_PORT}
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${DEV_PG_DB_USER} -d ${DEV_PG_DATABASE}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: always
+
+  auth.api:
+    container_name: auth.api
+    build:
+      context: Api.Auth
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./Api.Auth/:/app
+      - /app/node_modules
+    depends_on:
+      - auth.db
+    ports:
+      - '3000:3000'
+    expose:
+      - 3000
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - 80:80
+    depends_on:
+      - auth.api
+    container_name: nginx
+    expose:
+      - 80
