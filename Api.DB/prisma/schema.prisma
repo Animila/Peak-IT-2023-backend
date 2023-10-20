@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
@@ -33,6 +30,30 @@ model Session {
   user         User     @relation(fields: [userId], references: [id])
 }
 
- 
+model Event {
+  id        Int      @id @default(autoincrement())
+  name      String
+  location  String
+  count     Int
+  date      DateTime
+  // Add other event-specific fields here
+  schedules Schedule[]
+  broadcasts Broadcast[]
+}
 
+model Schedule {
+  id      Int     @id @default(autoincrement())
+  eventId Int
+  event   Event   @relation(fields: [eventId], references: [id])
+  date    DateTime
+  // Add other schedule-specific fields here
+}
+
+model Broadcast {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  event     Event   @relation(fields: [eventId], references: [id])
+  videoUrl  String   // You can adjust the type as needed
+  // Add other broadcast-specific fields here
+}
 

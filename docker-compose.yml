@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  auth.db:
+  api.db:
     image: postgres:alpine3.18
     volumes:
-      - ./Api.Auth/database/auth_db:/var/lib/postgresql/data
-    container_name: auth.db
+      - ./Api.DB/database/auth_db:/var/lib/postgresql/data
+    container_name: api.db
     environment:
       - POSTGRES_USER=${DEV_PG_DB_USER}
       - POSTGRES_PASSWORD=${DEV_PG_DB_PASS}
@@ -32,11 +32,26 @@ services:
       - ./Api.Auth/:/app
       - /app/node_modules
     depends_on:
-      - auth.db
+      - api.db
     ports:
       - '3000:3000'
     expose:
       - 3000
+
+  events.api:
+    container_name: auth.api
+    build:
+      context: Api.Events
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./Api.Events/:/app
+      - /app/node_modules
+    depends_on:
+      - api.db
+    ports:
+      - '4000:4000'
+    expose:
+      - 4000
 
   nginx:
     image: nginx:latest
